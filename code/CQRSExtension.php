@@ -22,6 +22,18 @@ class CQRSExtension extends Extension {
         return $this->owner->{$this->key} ?: $this->key;
     }
 
+    private function getCommitedPayload() {
+        return $this->getActiveHandler()->read($this->getPayloadStoreKey());
+    }
+
+    private function getPayloadChecksum($payload) {
+        return md5(Convert::array2json($payload));
+    }
+
+    public function isInSync() {
+        return $this->getPayloadChecksum($this->getCommitedPayload()) === $this->getPayloadChecksum($this->owner->commit());
+    }
+
     public function writeToPayloadStore() {
         if ($this->owner->canCommit()) {
             $handler = $this->getActiveHandler();
@@ -39,7 +51,8 @@ class CQRSExtension extends Extension {
             user_error('CQRSExtension requires the owner to implement "PayloadProvider" interface');
         }
 
-        if ($this->owner->canCommit()) {
+        if ($this->owner->canCommit() &&
+            !$this->owner->isInSync()) {
             $actions->push(
                 BetterButtonCustomAction::create(
                     'writeToPayloadStore',
