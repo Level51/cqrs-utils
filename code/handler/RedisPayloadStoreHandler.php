@@ -43,7 +43,7 @@ class RedisPayloadStoreHandler extends PayloadStoreHandler {
      * @return array
      */
     public function read(string $key): array {
-        return Convert::json2array($this->redis->get($key));
+        return Convert::json2array($this->redis->get($key)) ?: [];
     }
 
     /**
