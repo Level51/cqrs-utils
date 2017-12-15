@@ -7,7 +7,7 @@ interface PayloadProvider {
      *
      * @return bool
      */
-    public function canCommit(): bool;
+    //public function canCommit(): bool;
 
     /**
      * Generates a flat array structure to be stored in the API payload store.
