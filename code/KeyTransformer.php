@@ -2,5 +2,5 @@
 
 interface KeyTransformer {
 
-    public static function transform(string $value): string ;
+    public static function transform(string $value): string;
 }
