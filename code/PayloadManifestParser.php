@@ -27,6 +27,34 @@ class PayloadManifestParser {
         }
     }
 
+    /**
+     * Generates a human-readable error message if a value is missing.
+     *
+     * @param $record
+     * @param $field
+     */
+    private function required($record, $field) {
+        $this->validationError(_t('PayloadManifestParser.ERR_REQUIRED', '"{field}" fehlt für {class} "{title}"', '', [
+            'field' => $record->fieldLabel($field),
+            'class' => _t($record->class . '.SINGULARNAME'),
+            'title' => $record->getTitle()
+        ]));
+    }
+
+    /**
+     * Generates a human-readable error message if entries in a relation list are missing.
+     *
+     * @param $record
+     * @param $field
+     */
+    private function missing($record, $field) {
+        $this->validationError(_t('PayloadManifestParser.ERR_MISSING', 'Keine {field}-Einträge für {class} "{title}" gefunden', '', [
+            'field' => _t($record->$field()->dataClass() . '.PLURALNAME'),
+            'class' => _t($record->class . '.SINGULARNAME'),
+            'title' => $record->getTitle()
+        ]));
+    }
+
     public function canCommit() {
         return count($this->validationErrors) < 1;
     }
@@ -49,17 +77,14 @@ class PayloadManifestParser {
     /**
      * Better Error Logging (user readable)
      *
-     * @param      $instance
+     * @param      $record
      * @param bool $collectErrors
-     *
-     * TODO: Handle all cases
-     * TODO: Meaningful error messages
      *
      * @return array
      */
-    public function commit($instance, $collectErrors = true) {
+    public function commit($record, $collectErrors = true) {
         $payload = [];
-        $class = $instance->class;
+        $class = $record->class;
 
         foreach ($this->getManifest($class) as $key => $value) {
 
@@ -71,39 +96,39 @@ class PayloadManifestParser {
                 }
 
                 // Check for DB field
-                if ($instance->hasField($value)) {
-                    $value = $instance->$value;
+                if ($record->hasField($value)) {
+                    $value = $record->$value;
                     if ($value !== null &&
                         $value !== '') {
                         $payload[$key] = $value;
                     } else {
-                        if($collectErrors)
-                            $this->validationError("\"$key\" is a required field on \"$class\""); // TODO: i18n
+                        if ($collectErrors)
+                            $this->required($record, $key);
                     }
                 } else {
 
                     // Check for method
-                    if ($instance->hasMethod($value)) {
-                        $value = $instance->$value();
+                    if ($record->hasMethod($value)) {
+                        $value = $record->$value();
                         if ($value !== null &&
                             $value !== '') {
                             $payload[$key] = $value;
                         } else {
-                            if($collectErrors)
-                                $this->validationError("\"$key\" is invalid on \"$class\""); // TODO: i18n
+                            if ($collectErrors)
+                                $this->required($record, $key);
                         }
                     } else {
                         user_error("No method \"$value\" found on \"$class\".");
                     }
                 }
-            } elseif (array_key_exists($key, $instance->hasMany()) ||
-                array_key_exists($key, $instance->manyMany())) {
-                $relationRecords = $instance->$key();
+            } elseif (array_key_exists($key, $record->hasMany()) ||
+                array_key_exists($key, $record->manyMany())) {
+                $relationRecords = $record->$key();
                 $isRequired = $value;
 
                 if ($isRequired === true &&
                     !$relationRecords->exists()) {
-                    $this->validationError("No \"$key\" records on \"$class\".");
+                    $this->missing($record, $key);
                 } else {
 
                     // Commit relation records
