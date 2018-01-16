@@ -52,6 +52,9 @@ class PayloadManifestParser {
      * @param      $instance
      * @param bool $collectErrors
      *
+     * TODO: Handle all cases
+     * TODO: Meaningful error messages
+     *
      * @return array
      */
     public function commit($instance, $collectErrors = true) {
