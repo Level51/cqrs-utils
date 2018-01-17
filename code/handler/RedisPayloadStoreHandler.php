@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Class RedisPayloadStoreHandler
+ */
 class RedisPayloadStoreHandler extends PayloadStoreHandler {
 
     private static $host = '127.0.0.1';
@@ -54,7 +57,7 @@ class RedisPayloadStoreHandler extends PayloadStoreHandler {
      * @param array  $payload
      */
     public function write(string $key, array $payload) {
-        $this->redis->set($key, Convert::array2json($payload));
+        $this->redis->set($key, Convert::array2json($payload, JSON_NUMERIC_CHECK, JSON_UNESCAPED_SLASHES));
     }
 
     /**

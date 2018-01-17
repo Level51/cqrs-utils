@@ -1,11 +1,29 @@
 <?php
 
+/**
+ * Class PayloadManifestParser
+ */
 class PayloadManifestParser {
 
+    const TYPE_FIELD = 'field';
+
+    const TYPE_METHOD = 'method';
+
+    const TYPE_RELATION = 'relation';
+
+    /**
+     * @var string
+     */
     private static $key_transformer = 'LowerCamelCaseKeyTransformer';
 
+    /**
+     * @var KeyTransformer
+     */
     private $keyTransformer;
 
+    /**
+     * @var array
+     */
     private $validationErrors;
 
     public function __construct() {
@@ -13,14 +31,29 @@ class PayloadManifestParser {
         $this->validationErrors = [];
     }
 
+    /**
+     * Obtains the read payload manifest for the given class.
+     *
+     * @param $class
+     *
+     * @return array|scalar
+     */
     public function getManifest($class) {
         return Config::inst()->get($class, 'read_payload');
     }
 
+    /**
+     * @return array
+     */
     public function getValidationErrors() {
         return $this->validationErrors;
     }
 
+    /**
+     * Lists a validation error if not present yet.
+     *
+     * @param $error
+     */
     private function validationError($error) {
         if (!in_array($error, $this->validationErrors)) {
             $this->validationErrors[] = $error;
@@ -55,10 +88,23 @@ class PayloadManifestParser {
         ]));
     }
 
+    /**
+     * Checks if payload can be commited.
+     * NOTE: commit() has be to executed first.
+     *
+     * @return bool
+     */
     public function canCommit() {
         return count($this->validationErrors) < 1;
     }
 
+    /**
+     * Applies the transformer rules to parsed payload.
+     *
+     * @param $payload
+     *
+     * @return array
+     */
     private function transform($payload) {
 
         // Transform keys
@@ -68,6 +114,10 @@ class PayloadManifestParser {
                 $key = $field;
             }
 
+            if (is_array($key)) {
+                $key = array_keys($key)[0];
+            }
+
             $preparedPayload[$transformer::transform($key)] = $field;
         }, $this->keyTransformer);
 
@@ -75,7 +125,106 @@ class PayloadManifestParser {
     }
 
     /**
-     * Better Error Logging (user readable)
+     * Parses one entry of the read payload manifest.
+     * This is the main algorithm implementation.
+     *
+     * @param $record        DataObject
+     * @param $key           int|string
+     * @param $value         string|bool|array
+     * @param $collectErrors bool
+     *
+     * @return array
+     */
+    private function parseEntry($record, $key, $value, $collectErrors = true) {
+
+        /**
+         * 1. Normalize NVP, e.g. 'ID' --> 'ID' => true
+         */
+        if (is_int($key)) {
+            $key = $value;
+            $value = true;
+        }
+
+        /**
+         * 2. Determine required and payload value
+         *  - if: Check if value is bool --> Field, Method or Relation
+         *  - elseif 1: Check if value is string --> Custom value mapping via method
+         *  - elseif 2: Check if value is array --> Extended config with value and required flag
+         */
+        $required = false;
+        $payload = null;
+        $type = null;
+
+        // Check if value is bool --> simple required check
+        if (is_bool($value)) {
+            $required = $value;
+
+            /**
+             * Check if key is:
+             *  - ID
+             *  - Relation (has_many, many_many, belongs_many_many)
+             *  - Method
+             */
+            if ($record->hasField($key)) {
+                $type = self::TYPE_FIELD;
+                $payload = $record->$key;
+            } elseif ($record->hasManyComponent($key) ||
+                $record->manyManyComponent($key)) {
+                $type = self::TYPE_RELATION;
+
+                // Recursively collect relation record payload
+                $payload = [];
+                foreach ($record->$key() as $relationRecord) {
+                    $payload[] = $this->commit($relationRecord, $required);
+                }
+            } elseif ($record->hasMethod($key)) {
+                $type = self::TYPE_METHOD;
+                $payload = $record->$key();
+            }
+        } elseif (is_string($value)) {
+            if (!$record->hasMethod($value)) {
+                trigger_error("The class {$record->class} must define the method \"{$value}\"", E_USER_ERROR);
+            }
+
+            $type = self::TYPE_METHOD;
+            $required = true;
+            $payload = $record->$value();
+        } elseif (is_array($value)) {
+            if (!key_exists('required', $value) ||
+                !key_exists('mapping', $value)) {
+                trigger_error("CQRS definition of \"$key\" needs to specify \"required\" (true/false) and \"mapping\" fields (record method name).", E_USER_ERROR);
+            }
+
+            if (!$record->hasMethod($value['mapping'])) {
+                trigger_error("The class {$record->class} must define the method \"{$value['mapping']}\"", E_USER_ERROR);
+            }
+
+            $type = self::TYPE_METHOD;
+            $required = $value['required'];
+            $payload = $record->$value['mapping']();
+        }
+
+        /**
+         * 3. Do error reporting
+         */
+        if ($required &&
+            empty($payload) &&
+            $collectErrors === true) {
+            if ($type === self::TYPE_RELATION) {
+                $this->missing($record, $key);
+            } else {
+                $this->required($record, $key);
+            }
+        }
+
+        return [
+            $key,
+            $payload
+        ];
+    }
+
+    /**
+     * Generates commit-ready data.
      *
      * @param      $record
      * @param bool $collectErrors
@@ -87,56 +236,9 @@ class PayloadManifestParser {
         $class = $record->class;
 
         foreach ($this->getManifest($class) as $key => $value) {
+            list($key, $data) = $this->parseEntry($record, $key, $value, $collectErrors);
 
-            // key is int: field is class variable or method and may not be null
-            if (is_int($key) ||
-                (is_string($key) && is_string($value))) {
-                if (is_int($key)) {
-                    $key = $value;
-                }
-
-                // Check for DB field
-                if ($record->hasField($value)) {
-                    $value = $record->$value;
-                    if ($value !== null &&
-                        $value !== '') {
-                        $payload[$key] = $value;
-                    } else {
-                        if ($collectErrors)
-                            $this->required($record, $key);
-                    }
-                } else {
-
-                    // Check for method
-                    if ($record->hasMethod($value)) {
-                        $value = $record->$value();
-                        if ($value !== null &&
-                            $value !== '') {
-                            $payload[$key] = $value;
-                        } else {
-                            if ($collectErrors)
-                                $this->required($record, $key);
-                        }
-                    } else {
-                        user_error("No method \"$value\" found on \"$class\".");
-                    }
-                }
-            } elseif (array_key_exists($key, $record->hasMany()) ||
-                array_key_exists($key, $record->manyMany())) {
-                $relationRecords = $record->$key();
-                $isRequired = $value;
-
-                if ($isRequired === true &&
-                    !$relationRecords->exists()) {
-                    $this->missing($record, $key);
-                } else {
-
-                    // Commit relation records
-                    foreach ($relationRecords as $relationRecord) {
-                        $payload[$key] = $this->commit($relationRecord, $isRequired);
-                    }
-                }
-            }
+            $payload[$key] = $data;
         }
 
         return $this->transform($payload);
