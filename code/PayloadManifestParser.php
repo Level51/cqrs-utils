@@ -162,12 +162,16 @@ class PayloadManifestParser {
             /**
              * Check if key is:
              *  - ID
+             *  - Relation (has_one)
              *  - Relation (has_many, many_many, belongs_many_many)
              *  - Method
              */
             if ($record->hasField($key)) {
                 $type = self::TYPE_FIELD;
                 $payload = $record->$key;
+            } elseif ($record->hasOneComponent($key)) {
+                $type = self::TYPE_RELATION;
+                $payload = $this->commit($record->$key(), $required);
             } elseif ($record->hasManyComponent($key) ||
                 $record->manyManyComponent($key)) {
                 $type = self::TYPE_RELATION;

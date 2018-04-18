@@ -2,6 +2,8 @@
 
 /**
  * Class CQRSExtension
+ * TODO: Better Buttons Actions return "1" on success
+ * TODO: Reload logic when CQRS actions are applied to reflect new state immediately
  */
 class CQRSExtension extends Extension {
 
