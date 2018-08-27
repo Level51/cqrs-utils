@@ -192,7 +192,15 @@ class PayloadManifestParser {
 
             $type = self::TYPE_METHOD;
             $required = true;
-            $payload = $record->$value();
+            $methodPayload = $record->$value();
+            if ($methodPayload instanceof DataList) {
+                $payload = [];
+                foreach ($methodPayload as $payloadRecord) {
+                    $payload[] = $this->commit($payloadRecord, $required);
+                }
+            } else {
+                $payload = $methodPayload;
+            }
         } elseif (is_array($value)) {
             if (!key_exists('required', $value) ||
                 !key_exists('mapping', $value)) {
@@ -205,7 +213,16 @@ class PayloadManifestParser {
 
             $type = self::TYPE_METHOD;
             $required = $value['required'];
-            $payload = $record->$value['mapping']();
+            $method = $value['mapping'];
+            $methodPayload = $record->$method();
+            if ($methodPayload instanceof DataList) {
+                $payload = [];
+                foreach ($methodPayload as $payloadRecord) {
+                    $payload[] = $this->commit($payloadRecord, $required);
+                }
+            } else {
+                $payload = $methodPayload;
+            }
         }
 
         /**
