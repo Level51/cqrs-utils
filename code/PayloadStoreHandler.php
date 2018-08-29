@@ -2,21 +2,12 @@
 
 abstract class PayloadStoreHandler {
 
-    private static $instance = null;
-
-    private function __clone() { }
-
-    private function __wakeup() { }
-
-    public static function inst($config = null) {
-        if (self::$instance === null) {
-            self::$instance = new static($config);
-        }
-
-        return self::$instance;
-    }
-
-    abstract protected function __construct($config);
+    /**
+     * PayloadStoreHandler constructor.
+     *
+     * @param array $config
+     */
+    abstract public function __construct($config);
 
     /**
      * @param string $key
@@ -30,6 +21,13 @@ abstract class PayloadStoreHandler {
      * @param array  $payload
      */
     abstract public function write(string $key, array $payload);
+
+    /**
+     * @param string $key
+     *
+     * @return mixed
+     */
+    abstract public function delete(string $key);
 
     /**
      * @param string|null $option

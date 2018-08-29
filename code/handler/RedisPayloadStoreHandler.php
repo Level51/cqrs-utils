@@ -20,7 +20,7 @@ class RedisPayloadStoreHandler extends PayloadStoreHandler {
      *
      * @param $config array
      */
-    protected function __construct($config) {
+    public function __construct($config) {
         $this->redis = new Redis();
 
         // TODO: Retry and failed connection logic
@@ -61,6 +61,17 @@ class RedisPayloadStoreHandler extends PayloadStoreHandler {
      */
     public function write(string $key, array $payload) {
         $this->redis->set($key, Convert::array2json($payload, JSON_NUMERIC_CHECK, JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * Deletes a key from the store.
+     *
+     * @param string $key
+     *
+     * @return mixed|void
+     */
+    public function delete(string $key) {
+        $this->redis->delete($key);
     }
 
     /**
