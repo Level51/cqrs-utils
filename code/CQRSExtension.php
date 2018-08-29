@@ -29,7 +29,7 @@ class CQRSExtension extends Extension {
     /**
      * CQRSExtension constructor.
      *
-     * @param $key string
+     * @param $key    string
      * @param $config array optional config object for store handler etc.
      */
     public function __construct($key, $config = null) {
@@ -71,7 +71,7 @@ class CQRSExtension extends Extension {
      * @return string
      */
     private function getPayloadChecksum($payload) {
-        return md5(Convert::array2json($payload));
+        return md5(Convert::array2json($payload, JSON_NUMERIC_CHECK, JSON_UNESCAPED_SLASHES));
     }
 
     /**
@@ -121,11 +121,16 @@ class CQRSExtension extends Extension {
 
             return true;
         } else {
-            Session::set(
-                "FormInfo.Form_ItemEditForm.formError.message",
-                $this->getErrorMessageForTemplate()
-            );
-            Session::set("FormInfo.Form_ItemEditForm.formError.type", "bad");
+            if (Director::is_cli()) {
+                Debug::dump($this->parser->getValidationErrors());
+                $this->parser->clearValidationErrors();
+            } else {
+                Session::set(
+                    "FormInfo.Form_ItemEditForm.formError.message",
+                    $this->getErrorMessageForTemplate()
+                );
+                Session::set("FormInfo.Form_ItemEditForm.formError.type", "bad");
+            }
 
             return false;
         }

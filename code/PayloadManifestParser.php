@@ -50,6 +50,13 @@ class PayloadManifestParser {
     }
 
     /**
+     * Resets errors array
+     */
+    public function clearValidationErrors() {
+        $this->validationErrors = [];
+    }
+
+    /**
      * Lists a validation error if not present yet.
      *
      * @param $error
@@ -171,15 +178,19 @@ class PayloadManifestParser {
                 $payload = $record->$key;
             } elseif ($record->hasOneComponent($key)) {
                 $type = self::TYPE_RELATION;
-                $payload = $this->commit($record->$key(), $required);
+                if ($record->$key()->exists()) {
+                    $payload = $this->commit($record->$key(), $required);
+                }
             } elseif ($record->hasManyComponent($key) ||
                 $record->manyManyComponent($key)) {
                 $type = self::TYPE_RELATION;
 
                 // Recursively collect relation record payload
-                $payload = [];
-                foreach ($record->$key() as $relationRecord) {
-                    $payload[] = $this->commit($relationRecord, $required);
+                if ($record->$key()->exists()) {
+                    $payload = [];
+                    foreach ($record->$key() as $relationRecord) {
+                        $payload[] = $this->commit($relationRecord, $required);
+                    }
                 }
             } elseif ($record->hasMethod($key)) {
                 $type = self::TYPE_METHOD;
