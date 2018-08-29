@@ -17,6 +17,11 @@ class CQRSExtension extends Extension {
     private $key;
 
     /**
+     * @var array
+     */
+    private $config;
+
+    /**
      * @var PayloadManifestParser
      */
     private $parser;
@@ -25,11 +30,13 @@ class CQRSExtension extends Extension {
      * CQRSExtension constructor.
      *
      * @param $key string
+     * @param $config array optional config object for store handler etc.
      */
-    public function __construct($key) {
+    public function __construct($key, $config = null) {
         parent::__construct();
 
         $this->key = $key;
+        $this->config = $config;
         $this->parser = new PayloadManifestParser();
     }
 
@@ -37,7 +44,7 @@ class CQRSExtension extends Extension {
      * @return PayloadStoreHandler
      */
     public function getActiveHandler() {
-        return RedisPayloadStoreHandler::inst();
+        return RedisPayloadStoreHandler::inst($this->config);
     }
 
     /**

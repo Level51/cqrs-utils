@@ -8,15 +8,15 @@ abstract class PayloadStoreHandler {
 
     private function __wakeup() { }
 
-    public static function inst() {
+    public static function inst($config = null) {
         if (self::$instance === null) {
-            self::$instance = new static();
+            self::$instance = new static($config);
         }
 
         return self::$instance;
     }
 
-    abstract protected function __construct();
+    abstract protected function __construct($config);
 
     /**
      * @param string $key

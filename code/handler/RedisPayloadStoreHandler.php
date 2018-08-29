@@ -14,17 +14,20 @@ class RedisPayloadStoreHandler extends PayloadStoreHandler {
     private $redis;
 
     /**
-     * APICacheHandler constructor.
+     * RedisPayloadStoreHandler constructor.
+     *
      * Creates a new instance of the Redis handler and connects to the local server.
+     *
+     * @param $config array
      */
-    protected function __construct() {
+    protected function __construct($config) {
         $this->redis = new Redis();
 
         // TODO: Retry and failed connection logic
         $this->redis->pconnect(self::$host, self::$port);
 
-        // Select default DB
-        $this->redis->select(self::$default_db);
+        // Select DB from config or fall back to default
+        $this->redis->select(isset($config['db']) ? $config['db'] : self::$default_db);
     }
 
     /**
