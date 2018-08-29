@@ -150,7 +150,6 @@ class CQRSExtension extends Extension {
         )->setDisabled($this->isInSync());
 
         if ($this->isInSync()) {
-            $updateAction->
             $updateAction->setDescription(_t('CQRSExtension.UP_TO_DATE', 'Lesedatenbank ist aktuell'));
         }
 
