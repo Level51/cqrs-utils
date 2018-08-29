@@ -11,6 +11,8 @@ class CQRSExtension extends Extension {
         'writeToPayloadStore'
     ];
 
+    private static $only_admin_can_update = false;
+
     /**
      * @var string Default config for payload store handler type
      */
@@ -44,6 +46,10 @@ class CQRSExtension extends Extension {
         $this->key = $key;
         $this->parser = new PayloadManifestParser();
         $this->payloadStoreHandler = new $payloadStoreHandlerType($config);
+    }
+
+    public function onAfterDelete() {
+        $this->removeFromPayloadStore();
     }
 
     /**
@@ -143,6 +149,13 @@ class CQRSExtension extends Extension {
     }
 
     /**
+     * Removes the current record from the payload store
+     */
+    public function removeFromPayloadStore() {
+        $this->getActiveHandler()->delete($this->owner->{$this->key});
+    }
+
+    /**
      * Provides BetterButtonsAction for Super-Admin View.
      *
      * TODO: Disabled state not working when in super admin view
@@ -159,7 +172,16 @@ class CQRSExtension extends Extension {
             $updateAction->setDescription(_t('CQRSExtension.UP_TO_DATE', 'Lesedatenbank ist aktuell'));
         }
 
-        $actions->push($updateAction);
+        if ($this->canManipulatePayloadStore()) $actions->push($updateAction);
+    }
+
+    /**
+     * @return bool Check if actions are admin-restricted
+     */
+    public function canManipulatePayloadStore() {
+        $onlyAdminCanUpdate = Config::inst()->get($this->owner->class, 'only_admin_can_update');
+
+        return !$onlyAdminCanUpdate || Permission::check('ADMIN');
     }
 
     /**
