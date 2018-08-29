@@ -7,10 +7,10 @@ class LowerCamelCaseKeyTransformer implements KeyTransformer {
     ];
 
     public static function transform(string $value): string {
-
         // Check for dictionary entry
-        if (array_key_exists($value, self::$dict)) {
-            return self::$dict[$value];
+        $dict = Config::inst()->get(self::class, 'dict');
+        if (array_key_exists($value, $dict)) {
+            return $dict[$value];
         }
 
         // Trim trailing whitespace
