@@ -119,6 +119,13 @@ class CQRSExtension extends Extension {
      * @return bool successful or not
      */
     public function writeToPayloadStore() {
+        // Check if record can be commited
+        if ($this->owner->hasMethod('canWriteToPayloadStore') &&
+            $this->owner->canWriteToPayloadStore() === false) {
+
+            return true;
+        }
+
         $payload = $this->parser->commit($this->owner);
 
         if ($this->parser->canCommit()) {
