@@ -39,9 +39,11 @@ class CQRSExtension extends Extension {
      * @param $key    string
      * @param $config array optional config object for store handler etc.
      */
-    public function __construct($key, $config = null) {
+    public function __construct($key, $config = []) {
         parent::__construct();
-        $payloadStoreHandlerType = Config::inst()->get($this->class, 'payload_store_handler_type');
+        $payloadStoreHandlerType = array_key_exists('store', $config) ?
+            $config['store'] :
+            Config::inst()->get($this->class, 'payload_store_handler_type');
 
         $this->key = $key;
         $this->parser = new PayloadManifestParser();

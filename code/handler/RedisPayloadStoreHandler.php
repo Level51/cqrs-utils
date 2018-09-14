@@ -23,7 +23,6 @@ class RedisPayloadStoreHandler extends PayloadStoreHandler {
     public function __construct($config) {
         $this->redis = new Redis();
 
-        // TODO: Retry and failed connection logic
         $this->redis->connect(self::$host, self::$port);
 
         // Select DB from config or fall back to default
