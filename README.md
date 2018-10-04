@@ -42,5 +42,20 @@ class MyObject extends DataObject {
 }
 ```
 
+## Handler
+### Elasticsearch
+Example config for the Elasticsearch payload handler.
+
+```yaml
+CustomDataObject:
+  extensions:
+    - CQRSExtension('ID', ['store' => 'ElasticsearchPayloadStoreHandler', 'index' => 'INDEX_NAME'])
+
+ElasticsearchPayloadStoreHandler:
+  hosts:
+    - localhost:9200
+    - { host: elastic.dohh.de, port: 443, scheme: https, user: elastic, pass: elastic }
+```
+
 ## Maintainer
 - Julian Scheuchenzuber <js@lvl51.de>
