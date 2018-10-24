@@ -122,16 +122,34 @@ class CQRSExtension extends Extension {
     }
 
     /**
-     * Writes the commited payload to the current payload store.
+     * Writes the committed payload to the current payload store.
      *
      * @return bool successful or not
+     * @throws Exception
      */
     public function writeToPayloadStore() {
+        if ($payload = $this->getWritePayload()) {
+            $handler = $this->getActiveHandler();
+            $handler->write($this->getPayloadStoreKey(), $payload);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the committed payload which should be written to the current payload store.
+     *
+     * @return array|bool
+     * @throws Exception
+     */
+    public function getWritePayload() {
         // Check if record can be commited
         if ($this->owner->hasMethod('canWriteToPayloadStore') &&
             $this->owner->canWriteToPayloadStore() === false) {
 
-            return true;
+            return false;
         }
 
         $payload = $this->parser->commit($this->owner);
@@ -140,7 +158,7 @@ class CQRSExtension extends Extension {
             $handler = $this->getActiveHandler();
             $handler->write($this->getPayloadStoreKey(), $payload);
 
-            return true;
+            return $payload;
         } else {
             if (Director::is_cli()) {
                 Debug::dump($this->parser->getValidationErrors());
