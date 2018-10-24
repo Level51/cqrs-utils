@@ -54,14 +54,14 @@ class MyObject extends DataObject {
 
 ```yaml
 CustomDataObject:
-	extensions:
-		- CQRSExtension('ID', ['store' => 'RedisPayloadStoreHandler', 'db' => 1])
+  extensions:
+    - CQRSExtension('ID', ['store' => 'RedisPayloadStoreHandler', 'db' => 1])
 
 # Optional, defaults to the values below
 RedisPayloadStoreHandler:
-	host: 127.0.0.1
-	port: 6379
-	default_db: 0	
+  host: 127.0.0.1
+  port: 6379
+  default_db: 0	
 ```
 ### MongoDB
 ---
@@ -74,13 +74,13 @@ RedisPayloadStoreHandler:
 
 ```yaml
 CustomDataObject:
-	extensions:
-		- CQRSExtension('ID', ['store' => 'MongoPayloadStoreHandler', 'db' => 'DB_NAME', 'collection' => 'COLLECTION_NAME'])
+  extensions:
+    - CQRSExtension('ID', ['store' => 'MongoPayloadStoreHandler', 'db' => 'DB_NAME', 'collection' => 'COLLECTION_NAME'])
 
 # Optional, defaults to the values below
 MongoPayloadStoreHandler:
-	host: 127.0.0.1
-	port: 27017	
+  host: 127.0.0.1
+  port: 27017	
 ```
 
 ### Elasticsearch
