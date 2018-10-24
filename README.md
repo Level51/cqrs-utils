@@ -43,18 +43,64 @@ class MyObject extends DataObject {
 ```
 
 ## Handler
+
+### Redis
+---
+
+#### Additional Requirements
+- ext-redis: PHP Redis extension
+
+#### Example Config
+
+```yaml
+CustomDataObject:
+	extensions:
+		- CQRSExtension('ID', ['store' => 'RedisPayloadStoreHandler', 'db' => 1])
+
+# Optional, defaults to the values below
+RedisPayloadStoreHandler:
+	host: 127.0.0.1
+	port: 6379
+	default_db: 0	
+```
+### MongoDB
+---
+
+#### Additional Requirements
+- ext-mongodb: [PHP MongoDB extension](http://php.net/manual/en/mongodb.installation.php)
+- mongodb/mongodb: [MongoDB PHP Library](https://docs.mongodb.com/php-library/current/)
+
+#### Example Config
+
+```yaml
+CustomDataObject:
+	extensions:
+		- CQRSExtension('ID', ['store' => 'MongoPayloadStoreHandler', 'db' => 'DB_NAME', 'collection' => 'COLLECTION_NAME'])
+
+# Optional, defaults to the values below
+MongoPayloadStoreHandler:
+	host: 127.0.0.1
+	port: 27017	
+```
+
 ### Elasticsearch
-Example config for the Elasticsearch payload handler.
+---
+
+#### Additional Requirements
+- elasticsearch/elasticsearch: [Elasticsearch PHP Client](https://github.com/elastic/elasticsearch-php)
+
+#### Example Config
 
 ```yaml
 CustomDataObject:
   extensions:
     - CQRSExtension('ID', ['store' => 'ElasticsearchPayloadStoreHandler', 'index' => 'INDEX_NAME'])
 
+# Optional, defaults to localhost:9200
 ElasticsearchPayloadStoreHandler:
   hosts:
     - localhost:9200
-    - { host: elastic.dohh.de, port: 443, scheme: https, user: elastic, pass: elastic }
+    - { host: elastic.domain.tld, port: 443, scheme: https, user: USERNAME, pass: PASS }
 ```
 
 ## Maintainer
