@@ -89,7 +89,7 @@ class PayloadManifestParser {
      */
     private function missing($record, $field) {
         $this->validationError(_t('PayloadManifestParser.ERR_MISSING', 'Keine {field}-Einträge für {class} "{title}" gefunden', '', [
-            'field' => _t($record->$field()->dataClass() . '.PLURALNAME'),
+            'field' => _t($record->$field()->ClassName . '.PLURALNAME'),
             'class' => _t($record->class . '.SINGULARNAME'),
             'title' => $record->getTitle()
         ]));
@@ -207,7 +207,7 @@ class PayloadManifestParser {
             if ($methodPayload instanceof DataList) {
                 $payload = [];
                 foreach ($methodPayload as $payloadRecord) {
-                    $payload[] = $this->commit($payloadRecord, $required);
+                    $payload[] = $this->commit($payloadRecord);
                 }
             } else {
                 $payload = $methodPayload;
@@ -229,7 +229,7 @@ class PayloadManifestParser {
             if ($methodPayload instanceof DataList) {
                 $payload = [];
                 foreach ($methodPayload as $payloadRecord) {
-                    $payload[] = $this->commit($payloadRecord, $required);
+                    $payload[] = $this->commit($payloadRecord);
                 }
             } else {
                 $payload = $methodPayload;
