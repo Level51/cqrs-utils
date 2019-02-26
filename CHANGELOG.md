@@ -10,5 +10,8 @@ All notable changes to this project will be documented in this file.
 - host, port and default_db for Redis handler maintainable via config api
 - Handler for elasticsearch
 
+### Changed
+- Extended config options for redis and mongo
+
 ### Fixed
 - Error Collection logic for nested structures

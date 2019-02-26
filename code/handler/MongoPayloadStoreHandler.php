@@ -29,8 +29,12 @@ class MongoPayloadStoreHandler extends PayloadStoreHandler {
      * @param array $config
      */
     public function __construct($config) {
-        $host = Config::inst()->get(MongoPayloadStoreHandler::class, 'host');
-        $port = Config::inst()->get(MongoPayloadStoreHandler::class, 'port');
+        $host = defined('SS_MONGO_HOST') ?
+            SS_MONGO_HOST :
+            Config::inst()->get(MongoPayloadStoreHandler::class, 'host');
+        $port = defined('SS_MONGO_PORT') ?
+            SS_MONGO_PORT :
+            Config::inst()->get(MongoPayloadStoreHandler::class, 'port');
         $this->client = new Client("mongodb://$host:$port");
 
         $this->db = $config['db'];
