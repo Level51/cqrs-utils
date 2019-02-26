@@ -23,9 +23,15 @@ class RedisPayloadStoreHandler extends PayloadStoreHandler {
     public function __construct($config) {
         $this->redis = new Redis();
 
-        $host = Config::inst()->get(RedisPayloadStoreHandler::class, 'host');
-        $port = Config::inst()->get(RedisPayloadStoreHandler::class, 'port');
-        $defaultDB = Config::inst()->get(RedisPayloadStoreHandler::class, 'default_db');
+        $host = defined('SS_REDIS_HOST') ?
+            SS_REDIS_HOST :
+            Config::inst()->get(RedisPayloadStoreHandler::class, 'host');
+        $port = defined('SS_REDIS_PORT') ?
+            SS_REDIS_PORT :
+            Config::inst()->get(RedisPayloadStoreHandler::class, 'port');
+        $defaultDB = defined('SS_REDIS_DEFAULT_DB') ?
+            SS_REDIS_DEFAULT_DB :
+            Config::inst()->get(RedisPayloadStoreHandler::class, 'default_db');
 
         $this->redis->connect($host, $port);
 
