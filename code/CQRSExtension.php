@@ -155,9 +155,6 @@ class CQRSExtension extends Extension {
         $payload = $this->parser->commit($this->owner);
 
         if ($this->parser->canCommit()) {
-            $handler = $this->getActiveHandler();
-            $handler->write($this->getPayloadStoreKey(), $payload);
-
             return $payload;
         } else {
             if (Director::is_cli()) {
