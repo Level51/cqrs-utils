@@ -80,7 +80,7 @@ class RedisPayloadStoreHandler extends PayloadStoreHandler {
      * @return mixed|void
      */
     public function delete(string $key) {
-        $this->redis->delete($key);
+        $this->redis->del($key);
     }
 
     /**
