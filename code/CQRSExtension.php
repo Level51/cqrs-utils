@@ -50,6 +50,10 @@ class CQRSExtension extends Extension {
         $this->payloadStoreHandler = new $payloadStoreHandlerType($config);
     }
 
+    public function onAfterWrite() {
+        if (Config::inst()->get($this->owner->class, 'auto_write_to_payload') === true) $this->writeToPayloadStore();
+    }
+
     public function onAfterDelete() {
         $this->removeFromPayloadStore();
     }
@@ -106,17 +110,19 @@ class CQRSExtension extends Extension {
                 ->addExtraClass('ss-ui-action-constructive')->setAttribute('data-icon', 'accept'));
 
             // Add action for writing data to payload store
-            if (Permission::check('PUBLISH_' . mb_strtoupper($this->owner->class))) {
-                $updateAction = FormAction::create(
-                    'writeToPayloadStore',
-                    _t('CQRSExtension.WRITE', 'Lesedatenbank aktualisieren')
-                )->setDisabled($this->isInSync());
+            if (Config::inst()->get($this->owner->class, 'show_write_to_payload_action') !== false) {
+                if (Permission::check('PUBLISH_' . mb_strtoupper($this->owner->class))) {
+                    $updateAction = FormAction::create(
+                        'writeToPayloadStore',
+                        _t('CQRSExtension.WRITE', 'Lesedatenbank aktualisieren')
+                    )->setDisabled($this->isInSync());
 
-                if ($this->isInSync()) {
-                    $updateAction->setDescription(_t('CQRSExtension.UP_TO_DATE', 'Lesedatenbank ist aktuell'));
+                    if ($this->isInSync()) {
+                        $updateAction->setDescription(_t('CQRSExtension.UP_TO_DATE', 'Lesedatenbank ist aktuell'));
+                    }
+
+                    $actions->push($updateAction);
                 }
-
-                $actions->push($updateAction);
             }
         }
     }
@@ -196,7 +202,8 @@ class CQRSExtension extends Extension {
             $updateAction->setDescription(_t('CQRSExtension.UP_TO_DATE', 'Lesedatenbank ist aktuell'));
         }
 
-        if ($this->canManipulatePayloadStore()) $actions->push($updateAction);
+        $showAction = Config::inst()->get($this->owner->class, 'show_write_to_payload_action');
+        if ($this->canManipulatePayloadStore() && $showAction !== false) $actions->push($updateAction);
     }
 
     /**
