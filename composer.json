@@ -4,7 +4,7 @@
   "time": "2017-11-08",
   "description": "Multi-Datastore CQRS utilities for SilverStripe",
   "type": "silverstripe-module",
-  "license": "proprietary",
+  "license": "MIT",
   "authors": [
     {
       "name": "Julian Scheuchenzuber",
