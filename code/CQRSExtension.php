@@ -135,6 +135,13 @@ class CQRSExtension extends Extension {
      */
     public function writeToPayloadStore() {
         if ($payload = $this->getWritePayload()) {
+            // Check if record can be commited
+            if ($this->owner->hasMethod('canWriteToPayloadStore') &&
+                $this->owner->canWriteToPayloadStore() === false) {
+
+                return false;
+            }
+
             $handler = $this->getActiveHandler();
             $handler->write($this->getPayloadStoreKey(), $payload);
 
@@ -151,13 +158,6 @@ class CQRSExtension extends Extension {
      * @throws Exception
      */
     public function getWritePayload() {
-        // Check if record can be commited
-        if ($this->owner->hasMethod('canWriteToPayloadStore') &&
-            $this->owner->canWriteToPayloadStore() === false) {
-
-            return false;
-        }
-
         $payload = $this->parser->commit($this->owner);
 
         if ($this->parser->canCommit()) {

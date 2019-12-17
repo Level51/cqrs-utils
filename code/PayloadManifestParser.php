@@ -271,7 +271,6 @@ class PayloadManifestParser {
         $class = $record->class;
 
         foreach ($this->getManifest($class) as $key => $value) {
-            if ($record->hasMethod('canWriteToPayloadStore') && !$record->canWriteToPayloadStore()) continue;
             list($key, $data) = $this->parseEntry($record, $key, $value, $collectErrors);
 
             $payload[$key] = $data;

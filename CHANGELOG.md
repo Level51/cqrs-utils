@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Extended config options for redis and mongo
+- Check canWriteToPayloadStore only on writeToPayloadStore
 
 ### Fixed
 - Error Collection logic for nested structures
