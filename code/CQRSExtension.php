@@ -231,7 +231,7 @@ class CQRSExtension extends Extension {
                 return [
                     "value" => $error
                 ];
-            }, $this->parser->getValidationErrors()))
+            }, $this->getValidationErrors()))
         ])->renderWith('CQRSErrorMessage');
     }
 
@@ -241,6 +241,6 @@ class CQRSExtension extends Extension {
      * @return array
      */
     public function getValidationErrors() {
-        return $this->parser->getValidationErrors();
+        return $this->owner->cqrsValidationErrors;
     }
 }

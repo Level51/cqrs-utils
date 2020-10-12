@@ -278,6 +278,9 @@ class PayloadManifestParser {
             $payload[$key] = $data;
         }
 
+        // Add validation errors to the affected record for later usage
+        $record->cqrsValidationErrors = $this->validationErrors;
+
         return $this->transform($payload);
     }
 }
