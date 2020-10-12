@@ -171,10 +171,7 @@ class CQRSExtension extends Extension {
         if ($this->parser->canCommit()) {
             return $payload;
         } else {
-            if (Director::is_cli()) {
-                Debug::dump($this->parser->getValidationErrors());
-                $this->parser->clearValidationErrors();
-            } else {
+            if (!Director::is_cli()) {
                 Session::set(
                     "FormInfo.Form_ItemEditForm.formError.message",
                     $this->getErrorMessageForTemplate()
@@ -236,5 +233,14 @@ class CQRSExtension extends Extension {
                 ];
             }, $this->parser->getValidationErrors()))
         ])->renderWith('CQRSErrorMessage');
+    }
+
+    /**
+     * Return the list of validation errors if exists.
+     *
+     * @return array
+     */
+    public function getValidationErrors() {
+        return $this->parser->getValidationErrors();
     }
 }

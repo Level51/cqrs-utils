@@ -269,6 +269,8 @@ class PayloadManifestParser {
     public function commit($record, $collectErrors = true) {
         $payload = [];
         $class = $record->class;
+        // Clear previous validation errors
+        $this->clearValidationErrors();
 
         foreach ($this->getManifest($class) as $key => $value) {
             list($key, $data) = $this->parseEntry($record, $key, $value, $collectErrors);
