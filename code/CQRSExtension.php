@@ -78,7 +78,15 @@ class CQRSExtension extends Extension {
      * @return array
      */
     private function getCommitedPayload() {
-        return $this->getActiveHandler()->read($this->getPayloadStoreKey());
+        $payload = $this->getActiveHandler()->read($this->getPayloadStoreKey());
+
+        if (get_class($this->getActiveHandler()) === MongoPayloadStoreHandler::class
+            && $payload
+            && isset($payload['payload'])) {
+            return $payload['payload'];
+        }
+
+        return $payload;
     }
 
     /**
