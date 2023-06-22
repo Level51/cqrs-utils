@@ -3,7 +3,8 @@
 /**
  * Class PayloadManifestParser
  */
-class PayloadManifestParser {
+class PayloadManifestParser
+{
 
     const TYPE_FIELD = 'field';
 
@@ -26,7 +27,8 @@ class PayloadManifestParser {
      */
     private $validationErrors;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->keyTransformer = Config::inst()->get(PayloadManifestParser::class, 'key_transformer');
         $this->validationErrors = [];
     }
@@ -38,21 +40,24 @@ class PayloadManifestParser {
      *
      * @return array|scalar
      */
-    public function getManifest($class) {
+    public function getManifest($class)
+    {
         return Config::inst()->get($class, 'read_payload');
     }
 
     /**
      * @return array
      */
-    public function getValidationErrors() {
+    public function getValidationErrors()
+    {
         return $this->validationErrors;
     }
 
     /**
      * Resets errors array
      */
-    public function clearValidationErrors() {
+    public function clearValidationErrors()
+    {
         $this->validationErrors = [];
     }
 
@@ -61,7 +66,8 @@ class PayloadManifestParser {
      *
      * @param $error
      */
-    private function validationError($error) {
+    private function validationError($error)
+    {
         if (!in_array($error, $this->validationErrors)) {
             $this->validationErrors[] = $error;
         }
@@ -73,7 +79,8 @@ class PayloadManifestParser {
      * @param $record
      * @param $field
      */
-    private function required($record, $field) {
+    private function required($record, $field)
+    {
         $this->validationError(_t('PayloadManifestParser.ERR_REQUIRED', '"{field}" fehlt für {class} "{title}"', '', [
             'field' => $record->fieldLabel($field),
             'class' => _t($record->class . '.SINGULARNAME'),
@@ -87,12 +94,14 @@ class PayloadManifestParser {
      * @param $record
      * @param $field
      */
-    private function missing($record, $field) {
-        $this->validationError(_t('PayloadManifestParser.ERR_MISSING', 'Keine {field}-Einträge für {class} "{title}" gefunden', '', [
-            'field' => _t($record->$field()->ClassName . '.PLURALNAME'),
-            'class' => _t($record->class . '.SINGULARNAME'),
-            'title' => $record->getTitle()
-        ]));
+    private function missing($record, $field)
+    {
+        $this->validationError(_t('PayloadManifestParser.ERR_MISSING',
+            'Keine {field}-Einträge für {class} "{title}" gefunden', '', [
+                'field' => _t($record->$field()->ClassName . '.PLURALNAME'),
+                'class' => _t($record->class . '.SINGULARNAME'),
+                'title' => $record->getTitle()
+            ]));
     }
 
     /**
@@ -101,7 +110,8 @@ class PayloadManifestParser {
      *
      * @return bool
      */
-    public function canCommit() {
+    public function canCommit()
+    {
         return count($this->validationErrors) < 1;
     }
 
@@ -112,7 +122,8 @@ class PayloadManifestParser {
      *
      * @return array
      */
-    private function transform($payload) {
+    private function transform($payload)
+    {
 
         // Transform keys
         $preparedPayload = [];
@@ -142,7 +153,9 @@ class PayloadManifestParser {
      *
      * @return array
      */
-    private function parseEntry($record, $key, $value, $collectErrors = true) {
+    private function parseEntry($record, $key, $value, $collectErrors = true)
+    {
+        $cqrsConfig = Config::inst()->get($record->getClassName(), 'cqrs_config') ?: [];
 
         /**
          * 1. Normalize NVP, e.g. 'ID' --> 'ID' => true
@@ -215,11 +228,13 @@ class PayloadManifestParser {
         } elseif (is_array($value)) {
             if (!key_exists('required', $value) ||
                 !key_exists('mapping', $value)) {
-                trigger_error("CQRS definition of \"$key\" needs to specify \"required\" (true/false) and \"mapping\" fields (record method name).", E_USER_ERROR);
+                trigger_error("CQRS definition of \"$key\" needs to specify \"required\" (true/false) and \"mapping\" fields (record method name).",
+                    E_USER_ERROR);
             }
 
             if (!$record->hasMethod($value['mapping'])) {
-                trigger_error("The class {$record->class} must define the method \"{$value['mapping']}\"", E_USER_ERROR);
+                trigger_error("The class {$record->class} must define the method \"{$value['mapping']}\"",
+                    E_USER_ERROR);
             }
 
             $type = self::TYPE_METHOD;
@@ -237,7 +252,10 @@ class PayloadManifestParser {
         }
 
         // Remove empty values
-        if (is_array($payload)) $payload = array_filter($payload);
+        $keepEmptyValues = !empty($cqrsConfig['keepEmptyValues']) && $cqrsConfig['keepEmptyValues'] === true;
+        if (is_array($payload) && !$keepEmptyValues) {
+            $payload = array_filter($payload);
+        }
 
         /**
          * 3. Do error reporting
@@ -266,7 +284,8 @@ class PayloadManifestParser {
      *
      * @return array
      */
-    public function commit($record, $collectErrors = true) {
+    public function commit($record, $collectErrors = true)
+    {
         $payload = [];
         $class = $record->class;
         // Clear previous validation errors
